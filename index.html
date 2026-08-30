@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>工作行事曆排程器</title>
+</head>
+<body>
+  <p id="loading">正在載入工作行事曆排程器…</p>
+  <script>
+    (async () => {
+      try {
+        const files = Array.from({ length: 6 }, (_, i) => `site-src/part-${String(i + 1).padStart(2, '0')}.b64`);
+        const parts = await Promise.all(files.map(async (path) => {
+          const response = await fetch(path, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`Unable to load ${path}: ${response.status}`);
+          return response.text();
+        }));
+        const binary = atob(parts.join('').replace(/\s/g, ''));
+        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        const html = new TextDecoder('utf-8').decode(bytes);
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (error) {
+        console.error(error);
+        document.getElementById('loading').textContent = '網站載入失敗，請重新整理頁面。';
+      }
+    })();
+  </script>
+</body>
+</html>
