@@ -1,0 +1,4 @@
+'use client';
+import { useState } from 'react';import { createAuthClient } from 'better-auth/react';
+const client=createAuthClient();
+export default function Reset(){const [pass,setPass]=useState(''),[msg,setMsg]=useState('');async function submit(e:React.FormEvent){e.preventDefault();const token=new URLSearchParams(location.search).get('token');if(!token){setMsg('連結無效');return}const r=await client.resetPassword({newPassword:pass,token});if(r.error){setMsg(r.error.message||'設定失敗');return}location.assign('/sign-in')}return <div className="login"><h1>設定登入密碼</h1><form onSubmit={submit}><div className="field"><label>新密碼（至少 12 字元）</label><input type="password" minLength={12} required onChange={e=>setPass(e.target.value)} value={pass}/></div><button className="btn">設定密碼</button></form>{msg&&<p>{msg}</p>}</div>}

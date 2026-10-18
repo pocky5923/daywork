@@ -1,0 +1,4 @@
+import { get } from '@vercel/blob';
+import { pool } from '@/lib/db';
+import { getActor,readProject,apiFailure,HttpError,audit } from '@/lib/access';
+export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){try{const a=await getActor();const {id}=await params;const r=await pool.query('SELECT * FROM documents WHERE id=$1',[id]);if(!r.rowCount)throw new HttpError(404,'找不到 PDF');const d=r.rows[0];await readProject(a,d.project_id);const file=await get(d.pathname,{access:'private'});if(!file||file.statusCode!==200)throw new HttpError(404,'找不到檔案');await audit(a,'download','document',id);return new Response(file.stream,{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename="specification.pdf"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}})}catch(e){return apiFailure(e)}}

@@ -1,0 +1,3 @@
+import { getActor,readProject,requireManager,apiFailure,audit,HttpError } from '@/lib/access';
+import { pool } from '@/lib/db';
+export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){try{const a=await getActor();const {id}=await params;const p=await readProject(a,id);requireManager(a,p);const {companyId}=await req.json();if(!/^[0-9a-f-]{36}$/i.test(String(companyId)))throw new HttpError(400,'公司 ID 格式錯誤');await pool.query('INSERT INTO project_invitations(project_id,company_id,invited_by) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',[id,companyId,a.id]);await audit(a,'invite','project',id);return Response.json({ok:true})}catch(e){return apiFailure(e)}}

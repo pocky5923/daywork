@@ -1,0 +1,3 @@
+import { pool } from '@/lib/db';
+import { getActor,apiFailure,HttpError,audit } from '@/lib/access';
+export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){try{const a=await getActor();if(a.role!=='admin')throw new HttpError(403,'限最高管理員');const {id}=await params;if(id===a.id)throw new HttpError(403,'不可停用自己的帳號');const body=await req.json();if(typeof body.active!=='boolean')throw new HttpError(400,'active 必須為布林值');await pool.query('UPDATE profiles SET active=$2 WHERE user_id=$1 AND role<>$3',[id,body.active,'admin']);await audit(a,body.active?'enable':'disable','user',id);return Response.json({ok:true})}catch(e){return apiFailure(e)}}
